@@ -9,7 +9,7 @@ const App = () => {
         GoXLR Mic Light
       </h1>
       <p id="notice" className="text-xl">
-        Please toggle mic to start.
+        Configuring app... please wait
       </p>
       <div className="hidden text-white text-8xl"></div>
     </div>
