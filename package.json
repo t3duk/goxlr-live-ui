@@ -9,10 +9,11 @@
     "build:webpack": "npx webpack",
     "build:tsc": "npx tsc",
     "start": "npx electron .",
-    "dist": "npx electron-builder"
+    "package": "npx electron-builder"
   },
   "build": {
     "appId": "uk.t3d.goxlrmiclight",
+    "productName": "GoXLR Mic Light",
     "directories": {
       "output": "bin/"
     },
