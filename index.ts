@@ -27,10 +27,27 @@ async function createWindow(): Promise<void> {
     win.setBackgroundColor(red);
     win.webContents.executeJavaScript(
       `
+            if (document.getElementById("notice").classList.contains("hidden") == false) {
+              document.getElementById("notice").classList.add("hidden");
+            }
             document.getElementById("title").textContent = "LIVE";
             document.getElementById("title").classList.add("text-white");
             document.getElementById("title").classList.add("text-8xl");
             document.getElementById("title").classList.remove("text-4xl");
+            `
+    );
+  }
+
+  async function disconnected() {
+    win.setBackgroundColor(white);
+    win.webContents.executeJavaScript(
+      `
+            document.getElementById("title").textContent = "No GoXLR connected";
+            document.getElementById("notice").classList.remove("hidden");
+            document.getElementById("notice").textContent = "No GoXLR detected... try plugging it in";
+            document.getElementById("title").classList.remove("text-white");
+            document.getElementById("title").classList.add("text-4xl");
+            document.getElementById("title").classList.remove("text-8xl");
             `
     );
   }
@@ -40,17 +57,14 @@ async function createWindow(): Promise<void> {
     win.setBackgroundColor(white);
     win.webContents.executeJavaScript(
       `
+            if (document.getElementById("notice").classList.contains("hidden") == false) {
+              document.getElementById("notice").classList.add("hidden");
+            }
             document.getElementById("title").textContent = "Muted";
             document.getElementById("title").classList.remove("text-white");
             document.getElementById("title").classList.add("text-4xl");
             document.getElementById("title").classList.remove("text-8xl");
             `
-    );
-  }
-
-  async function hideText() {
-    win.webContents.executeJavaScript(
-      'document.getElementById("notice").classList.add("hidden");'
     );
   }
 
@@ -73,11 +87,14 @@ async function createWindow(): Promise<void> {
   socket.onmessage = (message: any) => {
     const json = JSON.parse(message.data);
 
+    console.log(json.data);
+
     if (json.id == randId) {
       const keys = Object.keys(json.data.Status.mixers);
 
       if (keys.length == 0) {
-        return;
+        disconnected();
+        return "No GoXLR detected... try plugging it in";
       } else {
         serialNumber = keys[0];
         config = true;
@@ -87,13 +104,36 @@ async function createWindow(): Promise<void> {
         json.data.Status.mixers[serialNumber].fader_status.A.mute_state ==
         "Unmuted"
       ) {
-        hideText();
         unmuted();
       } else {
-        hideText();
         muted();
       }
 
+      return;
+    }
+
+    if (
+      json.data.Patch[0].op == "add" &&
+      json.data.Patch[0].path.includes("mixers")
+    ) {
+      console.log("New GoXLR detected");
+      config = false;
+      serialNumber = "";
+      socket.send(
+        JSON.stringify({
+          id: randId,
+          data: "GetStatus",
+        })
+      );
+      return;
+    }
+
+    if (
+      json.data.Patch[0].op == "remove" &&
+      json.data.Patch[0].path.includes("mixers")
+    ) {
+      console.log("GoXLR disconnected");
+      disconnected();
       return;
     }
 
@@ -111,7 +151,6 @@ async function createWindow(): Promise<void> {
         json.data.Patch[i].path ==
         `/mixers/${serialNumber}/fader_status/A/mute_state`
       ) {
-        hideText();
         if (json.data.Patch[i].value == "Unmuted") {
           unmuted();
         } else {
