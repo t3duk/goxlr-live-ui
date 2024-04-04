@@ -1,6 +1,6 @@
 {
   "name": "goxlr-mic-light",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Uses localhost:14564 and Fader A to show when it is unmuted or live.",
   "main": "dist/index.js",
   "type": "module",
