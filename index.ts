@@ -167,6 +167,7 @@ async function createWindow(): Promise<void> {
 
   socket.onerror = (error: any) => {
     console.error(`WebSocket error, disconnected`);
+    console.error(error);
     process.exit(1);
   };
 }
