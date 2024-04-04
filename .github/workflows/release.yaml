@@ -30,17 +30,11 @@ jobs:
       - name: Package Electron
         run: npx electron-builder --publish=never
 
-      - name: Get the version
-        run: echo "VERSION=${{ github.ref_name }}" >> $GITHUB_ENV
+      - name: Echo Version
+        run: echo ${{ github.ref }}.Split('/')[-1].Substring(1)
 
-      - name: Echo GITHUB_REF for debugging
-        run: echo "GITHUB_REF is ${{ github.ref }}"
-
-      - name: Echo GITHUB_REF for debugging
-        run: echo "GITHUB_REF is $GITHUB_REF"
-
-      - name: Echo VERSION for debugging
-        run: echo "Version is $VERSION"
+      - name: Set Version
+        run: echo "VERSION=$(echo ${{ github.ref }}.Split('/')[-1].Substring(1))" >> $GITHUB_ENV
 
       - name: Upload Release Asset
         uses: actions/upload-release-asset@v1
@@ -48,6 +42,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
         with:
           upload_url: ${{ github.event.repository.releases_url }}
-          asset_path: ./bin/GoXLR Mic Light Setup_${{ env.VERSION }}.exe
-          asset_name: GoXLR Mic Light Setup_${{ env.VERSION }}.exe
+          asset_path: ./bin/GoXLR Mic Light Setup ${{ env.VERSION }}.exe
+          asset_name: GoXLR Mic Light Setup ${{ env.VERSION }}.exe
           asset_content_type: application/octet-stream
