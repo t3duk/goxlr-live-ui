@@ -31,7 +31,10 @@ jobs:
         run: npx electron-builder --publish=never
 
       - name: Get the version
-        run: echo "VERSION=${GITHUB_REF##*/}" >> $GITHUB_ENV
+        run: echo "VERSION=${{ github.ref_name }}" >> $GITHUB_ENV
+
+      - name: Echo GITHUB_REF for debugging
+        run: echo "GITHUB_REF is ${{ github.ref }}"
 
       - name: Echo GITHUB_REF for debugging
         run: echo "GITHUB_REF is $GITHUB_REF"
