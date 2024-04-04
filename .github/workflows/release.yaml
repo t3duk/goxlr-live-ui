@@ -32,7 +32,10 @@ jobs:
 
       - name: Get the version
         id: get_version
-        run: echo ::set-output name=VERSION::${GITHUB_REF#refs/tags/}
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+
+      - name: Echo VERSION for debugging
+        run: echo "Version is $VERSION"
 
       - name: Upload Release Asset
         uses: actions/upload-release-asset@v1
@@ -40,6 +43,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
         with:
           upload_url: ${{ github.event.repository.releases_url }}
-          asset_path: ./bin/GoXLR_Mic_Light_Setup_${{ steps.get_version.outputs.VERSION }}.exe
-          asset_name: GoXLR_Mic_Light_Setup_${{ steps.get_version.outputs.VERSION }}.exe
+          asset_path: ./bin/GoXLR Mic Light Setup ${{ env.VERSION }}.exe
+          asset_name: GoXLR Mic Light Setup ${{ env.VERSION }}.exe
           asset_content_type: application/octet-stream
