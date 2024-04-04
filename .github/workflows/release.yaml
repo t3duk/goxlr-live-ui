@@ -28,7 +28,7 @@ jobs:
         run: npm run build:tsc
 
       - name: Package Electron
-        run: npm run package
+        run: npx electron-builder --publish=never
 
       - name: Get the version
         id: get_version
