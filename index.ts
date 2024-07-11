@@ -3,7 +3,8 @@ import { app, BrowserWindow, Menu } from "electron";
 
 let red: string = "#ff0000";
 let white: string = "#ffffff";
-let micMuteStatus: boolean = false;
+let micMuteStatusA: boolean = false;
+let micMuteStatusB: boolean = false;
 let randId = Math.floor(Math.random() * 4294967295);
 
 let serialNumber: string;
@@ -14,7 +15,7 @@ async function createWindow(): Promise<void> {
   // Create the browser window.
   let win = new BrowserWindow({
     width: 500,
-    height: 300,
+    height: 800,
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
@@ -22,50 +23,92 @@ async function createWindow(): Promise<void> {
     autoHideMenuBar: true,
   });
 
-  async function unmuted() {
-    micMuteStatus = true;
-    win.setBackgroundColor(red);
-    win.webContents.executeJavaScript(
-      `
-            if (document.getElementById("notice").classList.contains("hidden") == false) {
-              document.getElementById("notice").classList.add("hidden");
-            }
-            document.getElementById("title").textContent = "LIVE";
-            document.getElementById("title").classList.add("text-white");
-            document.getElementById("title").classList.add("text-8xl");
-            document.getElementById("title").classList.remove("text-4xl");
+  async function unmuted(channel: string) {
+    if (channel == "A") {
+      micMuteStatusA = true;
+      win.webContents.executeJavaScript(
+        `
+            document.getElementById("titleA").textContent = "LIVE";
+            document.getElementById("noticeA").textContent = "MIC";
+            document.getElementById("titleA").classList.add("text-white");
+            document.getElementById("noticeA").classList.add("text-white");
+            document.getElementById("titleA").classList.add("text-8xl");
+            document.getElementById("titleA").classList.remove("text-4xl");
+            document.getElementById("cA").classList.remove("bg-white");
+            document.getElementById("cA").classList.add("bg-red-500");
             `
-    );
+      );
+    } else {
+      micMuteStatusB = true;
+      win.webContents.executeJavaScript(
+        `
+            document.getElementById("titleB").textContent = "LIVE";
+            document.getElementById("noticeB").textContent = "DISCORD VC";
+            document.getElementById("titleB").classList.add("text-white");
+            document.getElementById("noticeB").classList.add("text-white");
+            document.getElementById("titleB").classList.add("text-8xl");
+            document.getElementById("titleB").classList.remove("text-4xl");
+            document.getElementById("cB").classList.remove("bg-white");
+            document.getElementById("cB").classList.add("bg-red-500");
+            `
+      );
+    }
   }
 
   async function disconnected() {
     win.setBackgroundColor(white);
     win.webContents.executeJavaScript(
       `
-            document.getElementById("title").textContent = "No GoXLR connected";
-            document.getElementById("notice").classList.remove("hidden");
-            document.getElementById("notice").textContent = "No GoXLR detected... try plugging it in";
-            document.getElementById("title").classList.remove("text-white");
-            document.getElementById("title").classList.add("text-4xl");
-            document.getElementById("title").classList.remove("text-8xl");
+            document.getElementById("titleA").textContent = "No GoXLR connected";
+            document.getElementById("noticeA").classList.remove("hidden");
+            document.getElementById("noticeA").textContent = "No GoXLR detected... try plugging it in";
+            document.getElementById("titleA").classList.remove("text-white");
+            document.getElementById("titleA").classList.add("text-4xl");
+            document.getElementById("titleA").classList.remove("text-8xl");
+            document.getElementById("titleB").textContent = "No GoXLR connected";
+            document.getElementById("noticeB").classList.remove("hidden");
+            document.getElementById("noticeB").textContent = "No GoXLR detected... try plugging it in";
+            document.getElementById("titleB").classList.remove("text-white");
+            document.getElementById("titleB").classList.add("text-4xl");
+            document.getElementById("titleB").classList.remove("text-8xl");
+            document.getElementById("cA").classList.remove("bg-red-500");
+            document.getElementById("cA").classList.add("bg-white");
+            document.getElementById("cB").classList.remove("bg-red-500");
+            document.getElementById("cB").classList.add("bg-white");
             `
     );
   }
 
-  async function muted() {
-    micMuteStatus = false;
-    win.setBackgroundColor(white);
-    win.webContents.executeJavaScript(
-      `
-            if (document.getElementById("notice").classList.contains("hidden") == false) {
-              document.getElementById("notice").classList.add("hidden");
-            }
-            document.getElementById("title").textContent = "Muted";
-            document.getElementById("title").classList.remove("text-white");
-            document.getElementById("title").classList.add("text-4xl");
-            document.getElementById("title").classList.remove("text-8xl");
+  async function muted(channel: string) {
+    if (channel == "A") {
+      micMuteStatusA = false;
+      win.webContents.executeJavaScript(
+        `
+            document.getElementById("noticeA").textContent = "MIC";
+            document.getElementById("titleA").textContent = "Muted";
+            document.getElementById("noticeA").classList.remove("text-white");
+            document.getElementById("titleA").classList.remove("text-white");
+            document.getElementById("titleA").classList.add("text-4xl");
+            document.getElementById("titleA").classList.remove("text-8xl");
+            document.getElementById("cA").classList.add("bg-white");
+            document.getElementById("cA").classList.remove("bg-red-500");
             `
-    );
+      );
+    } else if (channel == "B") {
+      micMuteStatusB = false;
+      win.webContents.executeJavaScript(
+        `
+            document.getElementById("noticeB").textContent = "DISCORD VC";
+            document.getElementById("titleB").textContent = "Muted";
+            document.getElementById("noticeB").classList.remove("text-white");
+            document.getElementById("titleB").classList.remove("text-white");
+            document.getElementById("titleB").classList.add("text-4xl");
+            document.getElementById("titleB").classList.remove("text-8xl");
+            document.getElementById("cB").classList.remove("bg-red-500");
+            document.getElementById("cB").classList.add("bg-white");
+            `
+      );
+    }
   }
 
   win.loadFile("dist/index.html");
@@ -104,9 +147,21 @@ async function createWindow(): Promise<void> {
         json.data.Status.mixers[serialNumber].fader_status.A.mute_state ==
         "Unmuted"
       ) {
-        unmuted();
+        console.log("A unmuted");
+        unmuted("A");
       } else {
-        muted();
+        console.log("A muted");
+        muted("A");
+      }
+      if (
+        json.data.Status.mixers[serialNumber].fader_status.B.mute_state ==
+        "Unmuted"
+      ) {
+        console.log("B unmuted");
+        unmuted("B");
+      } else {
+        console.log("B muted");
+        muted("B");
       }
 
       return;
@@ -149,12 +204,26 @@ async function createWindow(): Promise<void> {
     for (i = 0; i < json.data.Patch.length; i++) {
       if (
         json.data.Patch[i].path ==
+        `/mixers/${serialNumber}/fader_status/B/mute_state`
+      ) {
+        if (json.data.Patch[i].value == "Unmuted") {
+          console.log("B unmuted");
+          unmuted("B");
+        } else {
+          console.log("B muted");
+          muted("B");
+        }
+      }
+      if (
+        json.data.Patch[i].path ==
         `/mixers/${serialNumber}/fader_status/A/mute_state`
       ) {
         if (json.data.Patch[i].value == "Unmuted") {
-          unmuted();
+          console.log("A unmuted");
+          unmuted("A");
         } else {
-          muted();
+          console.log("A muted");
+          muted("A");
         }
       }
     }
